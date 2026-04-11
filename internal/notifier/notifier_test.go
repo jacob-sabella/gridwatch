@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/config"
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/store"
 )
 
 type counterSink struct {

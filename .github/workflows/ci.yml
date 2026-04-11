@@ -65,7 +65,7 @@ jobs:
         with:
           context: .
           push: false
-          tags: ghcr.io/jsabella/gridwatch:ci
+          tags: ghcr.io/jacob-sabella/gridwatch:ci
           build-args: |
             VERSION=ci
             COMMIT=${{ github.sha }}

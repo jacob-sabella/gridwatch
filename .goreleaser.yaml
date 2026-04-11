@@ -22,9 +22,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/jsabella/gridwatch/internal/buildinfo.Version={{.Version}}
-      - -X github.com/jsabella/gridwatch/internal/buildinfo.Commit={{.Commit}}
-      - -X github.com/jsabella/gridwatch/internal/buildinfo.Date={{.Date}}
+      - -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Version={{.Version}}
+      - -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Commit={{.Commit}}
+      - -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Date={{.Date}}
     goos:
       - linux
       - darwin
@@ -72,8 +72,8 @@ changelog:
 
 dockers:
   - image_templates:
-      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-amd64"
-      - "ghcr.io/jsabella/gridwatch:latest-amd64"
+      - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-amd64"
+      - "ghcr.io/jacob-sabella/gridwatch:latest-amd64"
     dockerfile: Dockerfile
     use: buildx
     goos: linux
@@ -83,11 +83,11 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.source=https://github.com/jsabella/gridwatch"
+      - "--label=org.opencontainers.image.source=https://github.com/jacob-sabella/gridwatch"
       - "--label=org.opencontainers.image.licenses=MIT"
   - image_templates:
-      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-arm64"
-      - "ghcr.io/jsabella/gridwatch:latest-arm64"
+      - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-arm64"
+      - "ghcr.io/jacob-sabella/gridwatch:latest-arm64"
     dockerfile: Dockerfile
     use: buildx
     goos: linux
@@ -99,18 +99,18 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
 
 docker_manifests:
-  - name_template: "ghcr.io/jsabella/gridwatch:{{ .Version }}"
+  - name_template: "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}"
     image_templates:
-      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-amd64"
-      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-arm64"
-  - name_template: "ghcr.io/jsabella/gridwatch:latest"
+      - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-amd64"
+      - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/jacob-sabella/gridwatch:latest"
     image_templates:
-      - "ghcr.io/jsabella/gridwatch:latest-amd64"
-      - "ghcr.io/jsabella/gridwatch:latest-arm64"
+      - "ghcr.io/jacob-sabella/gridwatch:latest-amd64"
+      - "ghcr.io/jacob-sabella/gridwatch:latest-arm64"
 
 release:
   github:
-    owner: jsabella
+    owner: jacob-sabella
     name: gridwatch
   draft: false
   prerelease: auto

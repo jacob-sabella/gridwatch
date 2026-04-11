@@ -1,8 +1,8 @@
 package notifier
 
 import (
-	"github.com/jsabella/gridwatch/internal/config"
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // RuleEngine evaluates whether a (match, stage) tuple should fire given

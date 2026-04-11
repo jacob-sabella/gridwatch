@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/httpx"
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/ratelimit"
+	"github.com/jacob-sabella/gridwatch/internal/httpx"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/ratelimit"
 )
 
 // gameDefaults returns a minimal game slice suitable for tests.

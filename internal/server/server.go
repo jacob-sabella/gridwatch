@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jsabella/gridwatch/internal/config"
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/store"
-	"github.com/jsabella/gridwatch/internal/ui"
+	"github.com/jacob-sabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/ui"
 )
 
 // Server wires the HTTP layer to the store. It's stateless beyond the

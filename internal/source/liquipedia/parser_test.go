@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // -update regenerates golden files. Runs as:

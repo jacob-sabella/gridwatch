@@ -21,15 +21,15 @@ import (
 	// containers where /usr/share/zoneinfo isn't available.
 	_ "time/tzdata"
 
-	"github.com/jsabella/gridwatch/internal/buildinfo"
-	"github.com/jsabella/gridwatch/internal/config"
-	"github.com/jsabella/gridwatch/internal/httpx"
-	"github.com/jsabella/gridwatch/internal/notifier"
-	"github.com/jsabella/gridwatch/internal/poller"
-	"github.com/jsabella/gridwatch/internal/ratelimit"
-	"github.com/jsabella/gridwatch/internal/server"
-	"github.com/jsabella/gridwatch/internal/source/liquipedia"
-	"github.com/jsabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/buildinfo"
+	"github.com/jacob-sabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/httpx"
+	"github.com/jacob-sabella/gridwatch/internal/notifier"
+	"github.com/jacob-sabella/gridwatch/internal/poller"
+	"github.com/jacob-sabella/gridwatch/internal/ratelimit"
+	"github.com/jacob-sabella/gridwatch/internal/server"
+	"github.com/jacob-sabella/gridwatch/internal/source/liquipedia"
+	"github.com/jacob-sabella/gridwatch/internal/store"
 )
 
 func main() {

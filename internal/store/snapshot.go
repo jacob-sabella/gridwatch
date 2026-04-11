@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // SaveSnapshot writes the current store contents to path atomically

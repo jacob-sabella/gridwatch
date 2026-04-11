@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // Source is implemented by anything that fetches matches for one or more

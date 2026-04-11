@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/config"
 )
 
 // NtfySink implements Sink against ntfy servers using the JSON publish

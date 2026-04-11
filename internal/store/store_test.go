@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 func mkMatch(key, game string, start time.Time, status model.Status, teams ...string) model.Match {

@@ -20,9 +20,9 @@ RUN CGO_ENABLED=0 GOOS=linux \
     go build \
       -trimpath \
       -ldflags="-s -w \
-        -X github.com/jsabella/gridwatch/internal/buildinfo.Version=${VERSION} \
-        -X github.com/jsabella/gridwatch/internal/buildinfo.Commit=${COMMIT} \
-        -X github.com/jsabella/gridwatch/internal/buildinfo.Date=${DATE}" \
+        -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Version=${VERSION} \
+        -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Commit=${COMMIT} \
+        -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Date=${DATE}" \
       -o /out/gridwatch \
       ./cmd/gridwatch
 
@@ -31,7 +31,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 
 LABEL org.opencontainers.image.title="gridwatch"
 LABEL org.opencontainers.image.description="Self-hosted esports TV guide"
-LABEL org.opencontainers.image.source="https://github.com/jsabella/gridwatch"
+LABEL org.opencontainers.image.source="https://github.com/jacob-sabella/gridwatch"
 LABEL org.opencontainers.image.licenses="MIT"
 
 COPY --from=build /out/gridwatch /gridwatch

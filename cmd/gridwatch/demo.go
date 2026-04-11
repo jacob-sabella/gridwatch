@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/store"
 )
 
 // seedDemo loads a handful of fabricated matches so the UI can render

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // ParseAPIResponse is the top-level shape returned by the Liquipedia

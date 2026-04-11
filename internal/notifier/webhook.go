@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/config"
 )
 
 // WebhookSink POSTs a JSON payload to a user-supplied URL. The payload

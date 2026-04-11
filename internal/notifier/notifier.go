@@ -14,9 +14,9 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/jsabella/gridwatch/internal/config"
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/config"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/store"
 )
 
 // Stage identifies a notification category. The manager supports:

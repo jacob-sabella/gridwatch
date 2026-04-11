@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/ratelimit"
-	"github.com/jsabella/gridwatch/internal/source"
-	"github.com/jsabella/gridwatch/internal/store"
+	"github.com/jacob-sabella/gridwatch/internal/ratelimit"
+	"github.com/jacob-sabella/gridwatch/internal/source"
+	"github.com/jacob-sabella/gridwatch/internal/store"
 )
 
 // Poller runs one goroutine per (source, game). It owns the lifecycle

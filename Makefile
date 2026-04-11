@@ -5,9 +5,9 @@ COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
 LDFLAGS := -s -w \
-  -X github.com/jsabella/gridwatch/internal/buildinfo.Version=$(VERSION) \
-  -X github.com/jsabella/gridwatch/internal/buildinfo.Commit=$(COMMIT) \
-  -X github.com/jsabella/gridwatch/internal/buildinfo.Date=$(DATE)
+  -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Version=$(VERSION) \
+  -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Commit=$(COMMIT) \
+  -X github.com/jacob-sabella/gridwatch/internal/buildinfo.Date=$(DATE)
 
 build: ## Compile the binary into ./gridwatch
 	go build -trimpath -ldflags="$(LDFLAGS)" -o gridwatch ./cmd/gridwatch

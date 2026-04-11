@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 	"gopkg.in/yaml.v3"
 )
 

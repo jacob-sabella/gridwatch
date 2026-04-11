@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/httpx"
-	"github.com/jsabella/gridwatch/internal/model"
-	"github.com/jsabella/gridwatch/internal/ratelimit"
-	"github.com/jsabella/gridwatch/internal/source"
+	"github.com/jacob-sabella/gridwatch/internal/httpx"
+	"github.com/jacob-sabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/ratelimit"
+	"github.com/jacob-sabella/gridwatch/internal/source"
 )
 
 // Host is the hostname prefix the rate limiter uses for per-page floors.

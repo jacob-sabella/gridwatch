@@ -3,7 +3,7 @@ package store
 import (
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // FilterQuery is the query shape for Store.Query. Zero values mean

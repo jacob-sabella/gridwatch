@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jsabella/gridwatch/internal/model"
+	"github.com/jacob-sabella/gridwatch/internal/model"
 )
 
 // Store is a revision-tracked, goroutine-safe match index.

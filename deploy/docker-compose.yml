@@ -4,7 +4,7 @@
 
 services:
   gridwatch:
-    image: ghcr.io/jsabella/gridwatch:latest
+    image: ghcr.io/jacob-sabella/gridwatch:latest
     container_name: gridwatch
     restart: unless-stopped
     ports:

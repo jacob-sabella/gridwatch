@@ -1,4 +1,4 @@
-module github.com/jsabella/gridwatch
+module github.com/jacob-sabella/gridwatch
 
 go 1.23
 
