@@ -1,4 +1,4 @@
-.PHONY: build test run demo docker fmt vet clean
+.PHONY: build test run demo docker fmt vet clean check-secrets
 
 VERSION ?= dev
 COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -33,6 +33,17 @@ docker: ## Build a local Docker image
 	  --build-arg COMMIT=$(COMMIT) \
 	  --build-arg DATE=$(DATE) \
 	  -t gridwatch:$(VERSION) .
+
+check-secrets: ## Scan git history + working tree for leaked credentials
+	@which trufflehog >/dev/null 2>&1 || { \
+		echo "trufflehog not installed — get it with:"; \
+		echo "  curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b \$$HOME/.local/bin"; \
+		exit 1; \
+	}
+	@echo "== trufflehog: git history =="
+	trufflehog git file://. --no-update
+	@echo "== trufflehog: working tree (incl. untracked) =="
+	trufflehog filesystem . --no-update
 
 clean:
 	rm -f gridwatch

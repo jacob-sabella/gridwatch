@@ -1,13 +1,83 @@
+# ---- Build artifacts ----
 /gridwatch
 /dist/
-/data/
+/build/
+/out/
+
+# Go test + coverage
 *.test
 *.out
 coverage.*
+/vendor/
+
+# ---- Runtime data ----
+/data/
+snapshot.json
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Credentials + secrets ----
+# If any of these ever appear in the repo root, something is wrong.
+.env
+.env.*
+*.env
+!*.env.example
+credentials.txt
+credentials.yaml
+credentials.yml
+secrets.txt
+secrets.yaml
+secrets.yml
+*.pem
+*.key
+!*.pub.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+*_token*
+!*_token*.example
+api_key
+api_key.txt
+*.api-key
+service_keys
+.service_keys
+
+# ---- User-specific config overrides ----
+# The shipped example is configs/gridwatch.example.yaml — live configs should
+# live outside the repo (bind-mounted or in /opt on the host).
+/gridwatch.yaml
+/configs/gridwatch.yaml
+!/configs/gridwatch.example.yaml
+
+# ---- Editor / OS ----
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
 .idea/
 .vscode/
+*.iml
+.project
+.settings/
+.classpath
+*.sublime-project
+*.sublime-workspace
+
+# ---- Logs ----
 *.log
+logs/
+
+# ---- Temporary files ----
 /tmp/
-snapshot.json
-.env
+*.tmp
+*.bak
+.#*
+
+# ---- Local dev helpers ----
+.direnv/
+.envrc
+.air.toml
+__debug_bin

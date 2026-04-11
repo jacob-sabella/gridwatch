@@ -362,7 +362,15 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 	slots := make([]slotInfo, 0, slotCount)
 	for i := 0; i < slotCount; i++ {
 		t := windowStart.Add(time.Duration(i) * s.cfg.View.Slot)
-		slots = append(slots, slotInfo{Label: t.Format("15:04"), Start: t})
+		// 12h label — show ":00 AM/PM" on the hour, minutes-only between.
+		// Produces: "3 PM", "3:30", "4 PM", "4:30", etc. Compact + readable.
+		var label string
+		if t.Minute() == 0 {
+			label = t.Format("3 PM")
+		} else {
+			label = t.Format(":04")
+		}
+		slots = append(slots, slotInfo{Label: label, Start: t})
 	}
 
 	nowIdx := timeutil.SlotIndex(now, windowStart, s.cfg.View.Slot, slotCount)
@@ -379,9 +387,13 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 		"SlotCount":    slotCount,
 		"NowSlotIndex": nowIdx,
 		"WindowStart":  windowStart,
-		"Now":          now,
-		"Timezone":     tz.String(),
-		"Theme":        s.cfg.View.Theme,
-		"Filters":      q,
+		// Hand the window bounds to the client so JS can advance the
+		// cursor and the header clock without a server round-trip.
+		"WindowStartUnixMs": windowStart.UTC().UnixMilli(),
+		"SlotMs":            s.cfg.View.Slot.Milliseconds(),
+		"Now":               now,
+		"Timezone":          tz.String(),
+		"Theme":             s.cfg.View.Theme,
+		"Filters":           q,
 	}
 }

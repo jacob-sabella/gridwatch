@@ -1,6 +1,6 @@
 <div class="view-head">
   <h2>Live &amp; upcoming</h2>
-  <span class="muted">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
+  <span class="muted now-clock">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
 </div>
 
 {{if .Live}}
@@ -17,7 +17,10 @@
 <section class="epg-wrapper">
   <h3 class="section-title">Timeline</h3>
   <div class="epg-scroll">
-    <div class="epg" style="--slot-count:{{.SlotCount}};">
+    <div class="epg"
+         data-window-start-ms="{{.WindowStartUnixMs}}"
+         data-slot-ms="{{.SlotMs}}"
+         style="--slot-count:{{.SlotCount}}; --now-col:{{.NowSlotIndex}};">
       <div class="epg-axis">
         {{range $i, $slot := .Slots}}
           <div class="axis-cell" style="grid-column:{{add $i 1}};">{{$slot.Label}}</div>
@@ -37,7 +40,7 @@
       </div>
       {{end}}
 
-      <div class="now-cursor" style="--now-col:{{.NowSlotIndex}};" aria-hidden="true"></div>
+      <div class="now-cursor" aria-hidden="true"></div>
     </div>
   </div>
 </section>

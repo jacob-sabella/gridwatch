@@ -2,7 +2,8 @@
    - Theme toggle (localStorage)
    - Timezone cookie (sent to server on next request)
    - Server-sent events for live refresh
-   - "now" cursor advance every 30s (pure CSS variable nudge)
+   - Live ticking header clock (updates every second)
+   - "Now" cursor advance on the EPG grid (updates every 30s)
 */
 
 (function () {
@@ -29,6 +30,9 @@
   }
 
   // ---- Timezone cookie ----
+  // The server reads gw_tz on every render and uses it to format times in
+  // the user's local time. First load may see the default tz; subsequent
+  // loads use the detected one.
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) {
@@ -36,9 +40,63 @@
     }
   } catch (e) { /* ignore */ }
 
+  // ---- Live header clock ----
+  // The server renders the header clock once per response. We overwrite
+  // it every second so it stays fresh without SSE churn.
+  function formatNow() {
+    const now = new Date();
+    const date = now.toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+    const time = now.toLocaleTimeString(undefined, {
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    let tz = '';
+    try {
+      tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (e) { /* ignore */ }
+    return tz ? `${date} · ${time} ${tz}` : `${date} · ${time}`;
+  }
+
+  function updateClock() {
+    // The header clock spans live in .view-head .muted. There may be
+    // multiple (one per re-rendered partial); update all of them.
+    const nodes = document.querySelectorAll('.view-head .now-clock');
+    nodes.forEach(function (el) { el.textContent = formatNow(); });
+  }
+
+  // ---- "Now" cursor advance on the EPG ----
+  // The server emits data-window-start-ms + data-slot-ms on the .epg
+  // element so we can recompute which column the cursor belongs to
+  // without a round-trip.
+  function updateNowCursor() {
+    const epg = document.querySelector('.epg');
+    if (!epg) return;
+    const start = parseInt(epg.dataset.windowStartMs || '0', 10);
+    const slot = parseInt(epg.dataset.slotMs || '0', 10);
+    if (!start || !slot) return;
+    const now = Date.now();
+    const col = Math.max(0, Math.floor((now - start) / slot));
+    epg.style.setProperty('--now-col', String(col));
+  }
+
+  // Kick both loops on load and every second / 30s.
+  document.addEventListener('DOMContentLoaded', function () {
+    updateClock();
+    updateNowCursor();
+    setInterval(updateClock, 1000);
+    setInterval(updateNowCursor, 30 * 1000);
+    setTimeout(startSSE, 100);
+  });
+
+  // Re-wire when htmx swaps partials in — otherwise new .view-head nodes
+  // have a stale timestamp until the next tick.
+  document.addEventListener('htmx:afterSwap', function () {
+    updateClock();
+    updateNowCursor();
+  });
+
   // ---- SSE live refresh ----
-  // Strategy: on revision event, trigger an htmx request to refetch the
-  // grid partial. Falls back to periodic polling if EventSource is missing.
   function startSSE() {
     if (typeof EventSource === 'undefined') {
       console.log('[gridwatch] SSE unavailable, falling back to polling');
@@ -65,17 +123,4 @@
       if (view) window.htmx.ajax('GET', 'partial/grid', { target: '#view' });
     }
   }
-
-  // Wait until htmx is loaded before starting SSE so refreshGrid works.
-  document.addEventListener('DOMContentLoaded', function () {
-    // Defer SSE connection one tick so the initial render finishes first.
-    setTimeout(startSSE, 100);
-  });
-
-  // ---- "Now" cursor advance ----
-  // The server renders --now-col based on current time. Every 30 seconds,
-  // nudge it one slot to the right if the slot duration is ≤30s — visually
-  // this just keeps the cursor from looking frozen between SSE updates.
-  // A real update lands when SSE pushes a fresh render.
-  // (No-op here; the server-side SSE is the source of truth.)
 })();

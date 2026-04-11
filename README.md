@@ -1,56 +1,115 @@
-# gridwatch
+<a id="readme-top"></a>
 
-**Self-hosted esports TV guide.** One browser tab shows every live, upcoming, and recently-finished esports match across Rocket League, League of Legends, CS2, Dota 2, Valorant, and more — with direct click-through to the stream.
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+[![CI](https://github.com/jacob-sabella/gridwatch/actions/workflows/ci.yml/badge.svg)](https://github.com/jacob-sabella/gridwatch/actions/workflows/ci.yml)
 
-Single static Go binary. Single Docker image (<15 MB). No database. No build tooling required.
+# Gridwatch
 
-```
-                   ┌──────────────────────────┐
-                   │  Liquipedia (per game)   │
-                   └────────────┬─────────────┘
-                                │ polled every ≥90s
-                                ▼
-                       ┌─────────────────┐
-                       │    gridwatch    │
-                       │  (one binary)   │◀── your phone / desktop
-                       └─────────────────┘
-                                │
-                                ├── web UI (EPG grid + card view)
-                                ├── JSON API (for Homepage/Home Assistant)
-                                ├── iCal feed (Google Calendar subscribe)
-                                ├── XMLTV feed (Plex/Jellyfin Live TV guide)
-                                └── optional ntfy / webhook alerts
-```
+Self-hosted multi-game esports TV guide. One browser tab shows every live, upcoming, and recently-finished match across Rocket League, League of Legends, CS2, Dota 2, Valorant, and more — with direct click-through to the stream.
 
-## Quickstart
+Cross-platform: **Linux**, **macOS**, and **Windows**. Ships as a single static Go binary (~14 MB) or a distroless Docker image (<15 MB). No database. No build tooling. Runs anywhere you can put a binary.
+
+![Gridwatch EPG grid](screenshots/grid-view.png)
+
+![Gridwatch mobile card view](screenshots/cards-view.png)
+
+## Features
+
+### Upstream data
+- Polls **Liquipedia** wikis on a per-game schedule, respecting their Terms of Use at the code level (gzip required, descriptive User-Agent with contact, ≥90s per-page cache floor, 10-minute backoff on 429/5xx)
+- Per-(host, game) rate limit keys so wikis poll in parallel instead of serializing behind a shared bucket
+- Refuses to start without a `contact` config field — the ToU compliance check is a hard gate, not a best-effort warning
+- Golden-file parser tests against captured Liquipedia HTML per game — if their templates drift, CI fails loudly
+- In-memory store with 48h eviction and optional JSON snapshot for cold-start warmth
+
+### EPG timeline (desktop)
+- Horizontal scrollable grid with a time axis and one row per game/tournament
+- Live matches pinned in a pulsing "Live Now" banner above the grid
+- 30-minute slot granularity, configurable window (-2h to +24h by default)
+- Live "now" cursor line, per-game accent colors
+- Filters for game, region, tier, and "has stream" — filter state mirrored to URL query string for shareable links
+
+### Mobile card view
+- Auto-switches at `max-width: 720px` via pure CSS container queries
+- Three sections: **Live Now**, **Upcoming**, **Recent Results**
+- Thumb-reach stream button per card
+- Dark / light / auto theme (follows `prefers-color-scheme`)
+
+### Real-time updates
+- Server-sent events at `/events` emit revision bumps on store writes
+- Client triggers an htmx refresh in place — no full page reload
+- Fallback to 60s polling if the browser doesn't support EventSource
+- Reverse-proxy-friendly (sends `X-Accel-Buffering: no` for nginx)
+
+### APIs
+- **JSON** at `/api/v1/matches` — same filter params as the UI, for Homepage / Home Assistant widgets
+- **iCal** at `/api/v1/matches.ics` — subscribe in Google Calendar, Fantastical, or iCal
+- **XMLTV** at `/api/v1/matches.xml` — Plex Live TV, Jellyfin Live TV, xTeVe, TVHeadend, and Kodi can ingest this as a native program guide
+- **Prometheus metrics** at `/metrics` (opt-in)
+- `/healthz` with a freshness SLA — returns 503 if no successful poll in `2 × poll.liquipedia_interval`
+
+### Notifier (optional)
+- Push live/result alerts to **ntfy** or a generic **webhook**
+- Rules engine with game, stage, region, and minimum-tier filters
+- Dedupe state marked **only on 2xx delivery** — failed deliveries retry on the next cycle (a common footgun in similar tools)
+- Uses ntfy's JSON publish format so emoji in titles just works (no header-encoding bugs)
+
+### Supported games
+
+| slug              | game                | default Bo | default duration |
+|-------------------|---------------------|:----------:|:----------------:|
+| `rocketleague`    | Rocket League       | 5          | 90 min           |
+| `leagueoflegends` | League of Legends   | 5          | 60 min           |
+| `counterstrike`   | Counter-Strike 2    | 3          | 90 min           |
+| `dota2`           | Dota 2              | 3          | 75 min           |
+| `valorant`        | Valorant            | 3          | 90 min           |
+| `starcraft2`      | StarCraft II        | 5          | 60 min           |
+| `overwatch`       | Overwatch           | 5          | 45 min           |
+
+Any other Liquipedia wiki slug also works — gridwatch will generate reasonable defaults for unknown games. Every field is overridable in the config.
+
+## Install
+
+Pull the Docker image or download a pre-built release. The binary is fully static — no libc, no tzdata, nothing to install alongside it.
+
+### From Docker (recommended)
 
 ```bash
 docker run -p 8080:8080 \
   -e GRIDWATCH_CONTACT=you@example.com \
-  ghcr.io/jsabella/gridwatch:latest
+  ghcr.io/jacob-sabella/gridwatch:latest
 ```
 
-Open http://localhost:8080 — that's it. The baked-in default config tracks Rocket League, League of Legends, and Counter-Strike 2.
+Open http://localhost:8080 — you're done. The baked-in default config tracks Rocket League, League of Legends, and Counter-Strike 2.
 
-> `GRIDWATCH_CONTACT` is **required** because Liquipedia's API Terms of Use require a contact in the User-Agent string. gridwatch refuses to start without it.
+> `GRIDWATCH_CONTACT` is **required** because Liquipedia's API Terms of Use require a contact in the User-Agent string. Gridwatch refuses to start without it.
 
-## Features
+### From docker compose
 
-- **Multi-game EPG timeline** — horizontal scrollable grid across 7 games out of the box
-- **Mobile card view** — auto-switches below 720 px with Live Now / Upcoming / Recent sections
-- **Dark / light theme** — follows `prefers-color-scheme` or a manual toggle
-- **Real-time updates** — Server-Sent Events push new matches into the view without page reloads
-- **Shareable filters** — filter state is mirrored to the URL so you can bookmark "live RL + LoL only"
-- **JSON API** at `/api/v1/matches` — for Homepage widgets, Home Assistant, etc.
-- **iCal feed** at `/api/v1/matches.ics` — subscribe in Google Calendar / Fantastical
-- **XMLTV feed** at `/api/v1/matches.xml` — Plex Live TV, Jellyfin Live TV, xTeVe, and Kodi can ingest it as a program guide
-- **Optional push** — ntfy or generic webhook alerts for live matches, no UI to install
-- **Demo mode** — `--demo` seeds fake data so you can screenshot without waiting for Liquipedia
-- **Respects Liquipedia's ToU** — gzip, descriptive User-Agent, 90s page cache, 10-min 429 backoff (enforced in code, not just docs)
+A ready-to-use compose file lives at `deploy/docker-compose.yml`:
 
-## Configuration
+```bash
+cd deploy
+GRIDWATCH_CONTACT=you@example.com docker compose up -d
+```
 
-The minimum viable config is two lines:
+### From a release archive
+
+Grab the archive for your platform from the [Releases page](https://github.com/jacob-sabella/gridwatch/releases), extract, and run:
+
+```bash
+./gridwatch --config gridwatch.yaml
+```
+
+## Usage
+
+### Minimum viable config
+
+The whole thing fits in two keys:
 
 ```yaml
 contact: "you@example.com"
@@ -60,41 +119,19 @@ games:
   - counterstrike
 ```
 
-The full schema lives in [`configs/gridwatch.example.yaml`](configs/gridwatch.example.yaml) with every knob documented inline. Highlights:
+The full schema lives in [`configs/gridwatch.example.yaml`](configs/gridwatch.example.yaml) with every knob documented inline.
 
-- `poll.liquipedia_interval` — per-game polling floor. Hard minimum 90 s.
-- `view.window_past` / `view.window_future` — how much of the timeline to show
-- `notifications.sinks` — optional ntfy / webhook backends for live-match alerts
-- `${VAR}` env var interpolation in strings (for secrets)
-- Any `GRIDWATCH_*` env var overrides the corresponding config field
+### Reverse proxy
 
-## Supported games
+Sample configs live in [`deploy/`](deploy/):
 
-gridwatch ships with metadata for:
-
-| slug              | game                | default Bo | default duration |
-|-------------------|---------------------|:---------:|:----------------:|
-| `rocketleague`    | Rocket League       | 5         | 90 min           |
-| `leagueoflegends` | League of Legends   | 5         | 60 min           |
-| `counterstrike`   | Counter-Strike 2    | 3         | 90 min           |
-| `dota2`           | Dota 2              | 3         | 75 min           |
-| `valorant`        | Valorant            | 3         | 90 min           |
-| `starcraft2`      | StarCraft II        | 5         | 60 min           |
-| `overwatch`       | Overwatch           | 5         | 45 min           |
-
-Any other Liquipedia wiki slug also works — gridwatch will generate reasonable defaults for unknown games. You can override any field in the YAML.
-
-## Reverse proxy
-
-Sample configs live in `deploy/`:
-
-- **`deploy/nginx-proxy-manager/`** — step-by-step for NPM, including the SSE buffering gotcha
+- **`deploy/nginx-proxy-manager/`** — NPM setup, including the SSE-buffering gotcha
 - **`deploy/traefik/`** — labels fragment
 - **`deploy/caddy/`** — Caddyfile snippet
 
-> **SSE gotcha:** nginx (and therefore NPM and openresty) buffers Server-Sent Events by default. gridwatch sends `X-Accel-Buffering: no` on the `/events` endpoint, which nginx honors. If you're seeing stale pages under NPM, double-check proxy-buffering is off on the proxy host.
+> **SSE gotcha:** nginx (and by extension NPM/openresty) buffers Server-Sent Events by default. Gridwatch sends `X-Accel-Buffering: no` on `/events`, and nginx honors it — but if you add custom `advanced_config`, make sure `proxy_buffering off;` is set at the host level, not inside a bare `location /events { }` block without `proxy_pass`.
 
-## Notifier
+### Notifier
 
 Off by default. To enable push alerts:
 
@@ -110,56 +147,102 @@ notifications:
       url: http://ntfy.lan:8555
       topic: esports
       user: you
-      password: "${NTFY_PASSWORD}"
+      password: "${NTFY_PASSWORD}"  # env-var interpolation works
     - kind: webhook
       url: https://hooks.example.com/esports
 ```
 
-Fired-state is tracked per match, and dedupe is marked **only after a 2xx response** — a failed webhook doesn't cost you the notification on the retry.
+### Plex / Jellyfin Live TV
 
-## Plex / Jellyfin Live TV integration
+Gridwatch can't play Twitch streams itself, but its **XMLTV feed** lets Plex Live TV or Jellyfin Live TV (via xTeVe or TVHeadend) render the schedule as a native program guide. Point your tuner middleware at `http://gridwatch.lan:8080/api/v1/matches.xml` as an XMLTV source. Clicking through to the actual stream still happens in the browser.
 
-gridwatch can't actually play Twitch streams (Plex doesn't know how), but the **schedule** can show up as a native TV guide. Point xTeVe or TVHeadend at `http://gridwatch.lan:8080/api/v1/matches.xml` as an XMLTV guide source, and Plex Live TV renders the schedule as "channels" with programme info.
+## Build from Source
+
+Requires Go 1.23+.
+
+```bash
+# Development build
+go build ./cmd/gridwatch
+
+# Run full test suite with race detector
+go test -race ./...
+
+# Run against the example config (hits Liquipedia for real)
+make run
+
+# Run with canned fixtures, no upstream calls (for screenshots)
+make demo
+
+# Build a local Docker image
+make docker
+```
+
+Parser golden files regenerate with:
+
+```bash
+go test ./internal/source/liquipedia/ -run TestParseRocketLeagueGolden -update
+```
+
+Add a new game by dropping its `Liquipedia:Matches` parse API response into `internal/source/liquipedia/testdata/<slug>_matches.json` and adding a corresponding test.
 
 ## Architecture
 
 ```
-internal/
-├── config/         YAML + env overlay + validation
-├── model/          Match, Team, Stream, Tournament, Status
-├── store/          in-memory, revision-tracked, JSON snapshot
-├── httpx/          shared HTTP client (gzip + UA + timeout)
-├── ratelimit/      per-host buckets + global envelope + 429 cooldown
-├── source/
-│   ├── source.go   Source interface + Registry
-│   └── liquipedia/ Liquipedia implementation + parser + golden tests
-├── poller/         per-game goroutines, jittered schedules
-├── notifier/       ntfy + webhook sinks, rule engine, 2xx-gated dedupe
-├── server/         HTTP routes, HTMX detection, SSE, iCal, XMLTV, metrics
-├── ui/             embedded templates + static assets
-├── timeutil/       EPG slot math
-└── buildinfo/      -ldflags version injection
+Poller goroutines       Sources                 Store
+┌──────────────┐       ┌──────────────┐        ┌──────────────┐
+│ per-game     │──────>│ Liquipedia   │───────>│ in-memory    │
+│ jittered     │       │ (HTML parse) │ merge  │ revision-    │
+│ schedule     │       └──────────────┘        │ tracked      │
+└──────┬───────┘                ^              └──────┬───────┘
+       │                        │                     │
+       v                        │                     v
+┌──────────────┐       ┌──────────────┐        ┌──────────────┐
+│ Rate limiter │       │ httpx client │        │ HTTP/SSE     │
+│ per-host +   │       │ gzip + UA    │        │ server       │
+│ global cap   │       │ enforced     │        │ embed.FS UI  │
+└──────────────┘       └──────────────┘        └──────┬───────┘
+                                                      │
+                                         ┌────────────┼────────────┐
+                                         v            v            v
+                                    ┌─────────┐  ┌────────┐  ┌─────────┐
+                                    │  JSON   │  │  iCal  │  │  XMLTV  │
+                                    │  /api   │  │  feed  │  │  feed   │
+                                    └─────────┘  └────────┘  └─────────┘
 ```
 
-One process. No database. No message broker. Tiny single binary (14 MB) on distroless/static.
+- **Poller**: one goroutine per (source, game), jittered so N games don't fire simultaneously
+- **Rate limiter**: two-layer token bucket — per-host floor for Liquipedia's ≥90s per-page rule, plus a global RPS envelope so a misconfig can't blast upstream
+- **Store**: `sync.RWMutex`-guarded map, revision counter for SSE clients, merge semantics that preserve `FirstSeenAt` and dedupe state across polls
+- **Notifier**: consumes store transitions, runs the rule engine, delivers to sinks in parallel, marks fired only on 2xx
+- **UI**: stdlib `html/template` + htmx + ~200 lines of hand-written CSS, served from `embed.FS`. No build step.
 
-## Development
+Everything in one process. No database. One binary.
 
-```bash
-make test        # unit tests + race detector
-make run         # run against the example config (hits Liquipedia)
-make demo        # run with canned fixtures, no upstream calls
-make docker      # build a local Docker image
-```
+## Dependencies
 
-Parser golden files regenerate with `go test ./internal/source/liquipedia/ -run TestParseRocketLeagueGolden -update`. Add a new game by dropping its `Liquipedia:Matches` parse API response into `internal/source/liquipedia/testdata/<slug>_matches.json` and adding the corresponding test.
+| Package           | Purpose                                                  |
+|-------------------|----------------------------------------------------------|
+| `golang.org/x/time` | Rate limiter for upstream polling                      |
+| `gopkg.in/yaml.v3`  | Config loader                                          |
+| `htmx` (vendored) | Frontend interactivity without a framework               |
+
+That's the entire dependency tree. The rest is stdlib.
+
+## Vibe Coded
+
+This entire project was vibe coded with [Claude Code](https://claude.ai/claude-code). Architecture, implementation, UI design, parser engine, notifier rules, Dockerfile, CI pipeline — all of it. No hand-written code.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Distributed under the MIT License. See [LICENSE](LICENSE).
 
-## Acknowledgments
-
-- [Liquipedia](https://liquipedia.net) for curating the most comprehensive free esports database on the internet
-- [htmx](https://htmx.org) for making server-rendered apps feel alive without a framework
-- [ntfy](https://ntfy.sh) for the push-notification pattern this project inherits
+[contributors-shield]: https://img.shields.io/github/contributors/jacob-sabella/gridwatch.svg?style=for-the-badge
+[contributors-url]: https://github.com/jacob-sabella/gridwatch/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/jacob-sabella/gridwatch.svg?style=for-the-badge
+[forks-url]: https://github.com/jacob-sabella/gridwatch/network/members
+[stars-shield]: https://img.shields.io/github/stars/jacob-sabella/gridwatch.svg?style=for-the-badge
+[stars-url]: https://github.com/jacob-sabella/gridwatch/stargazers
+[issues-shield]: https://img.shields.io/github/issues/jacob-sabella/gridwatch.svg?style=for-the-badge
+[issues-url]: https://github.com/jacob-sabella/gridwatch/issues
+[license-shield]: https://img.shields.io/github/license/jacob-sabella/gridwatch.svg?style=for-the-badge
+[license-url]: https://github.com/jacob-sabella/gridwatch/blob/main/LICENSE
