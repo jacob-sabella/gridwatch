@@ -1,0 +1,31 @@
+<div class="view-head">
+  <h2>Matches</h2>
+  <span class="muted">{{formatDateIn .Now .Timezone}} · {{.Timezone}}</span>
+</div>
+
+{{if .Live}}
+<section class="section live">
+  <h3 class="section-title"><span class="live-dot"></span> LIVE NOW</h3>
+  {{range .Live}}{{template "partials/match_card.html" .}}{{end}}
+</section>
+{{end}}
+
+{{if .Upcoming}}
+<section class="section upcoming">
+  <h3 class="section-title">Upcoming</h3>
+  {{range .Upcoming}}{{template "partials/match_card.html" .}}{{end}}
+</section>
+{{end}}
+
+{{if .Recent}}
+<section class="section recent">
+  <h3 class="section-title">Recent results</h3>
+  {{range .Recent}}{{template "partials/match_card.html" .}}{{end}}
+</section>
+{{end}}
+
+{{if not (or .Live .Upcoming .Recent)}}
+<div class="empty">
+  <p class="big">No matches to show.</p>
+</div>
+{{end}}

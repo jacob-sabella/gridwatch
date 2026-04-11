@@ -1,0 +1,82 @@
+# gridwatch example configuration
+# =================================
+# Minimum viable config is just two keys: `contact` and `games`.
+# Everything else has sensible defaults.
+
+# REQUIRED — included in the User-Agent sent to Liquipedia. Their Terms
+# of Use require a contact. Can be an email OR an https:// URL.
+contact: "you@example.com"
+
+# Which games to poll. Ships with metadata defaults for:
+#   rocketleague, leagueoflegends, counterstrike, dota2,
+#   valorant, starcraft2, overwatch
+# You can also list any other Liquipedia wiki slug and gridwatch will
+# try to parse it with generic defaults.
+games:
+  - rocketleague
+  - leagueoflegends
+  - counterstrike
+
+# ----------------------------------------------------------------------
+# Everything below is optional. Shown here with defaults for reference.
+# ----------------------------------------------------------------------
+
+# HTTP server
+# bind: "0.0.0.0:8080"
+# base_url: ""           # set to e.g. "/gridwatch" for subpath reverse proxy
+# default_timezone: "America/Chicago"
+# data_dir: "/data"      # where snapshot.json lives
+# log_level: "info"      # debug | info | warn | error
+# metrics: false         # enable Prometheus /metrics endpoint
+
+# Snapshot (optional persistent store of match state across restarts)
+# snapshot:
+#   enabled: true
+#   interval: 5m
+
+# Polling rates — be polite to upstream
+# poll:
+#   global_rps: 0.2              # global outbound budget (1 req / 5s)
+#   liquipedia_interval: 120s    # per-game floor, never below 90s
+#   cache_ttl: 90s               # re-use cached HTML within this window
+#   backoff_ttl: 10m             # cooldown after 429 / 5xx
+#   jitter: 20s                  # spread per-game first-poll offset
+
+# Game overrides — override per-title metadata if you don't like defaults.
+# Unknown slugs also work (generic fallback).
+# games:
+#   - slug: rocketleague
+#     color: "#1f6bff"
+#     default_best_of: 5
+#     match_duration: 90m
+
+# View window shown in the EPG grid
+# view:
+#   window_past: 2h        # how far back to show
+#   window_future: 24h     # how far forward to show
+#   slot: 30m              # timeline slot granularity
+#   theme: "auto"          # auto | dark | light
+
+# Optional notifier — sends push alerts for live matches.
+# Off by default. Ntfy + generic webhook sinks supported.
+# notifications:
+#   enabled: true
+#   dedupe_window_hours: 48
+#   rules:
+#     - games: [rocketleague, leagueoflegends]
+#       stages: [live, result]
+#       min_tier: "A-Tier"
+#   sinks:
+#     - kind: ntfy
+#       url: http://ntfy.lan:8555
+#       topic: esports
+#       user: jacob
+#       password: "${NTFY_PASSWORD}"   # env-var interpolation works
+#       priority_map:
+#         live: 5
+#         reminder_10m: 4
+#     - kind: webhook
+#       url: https://hooks.example.com/esports
+#       method: POST
+#       headers:
+#         Authorization: "Bearer ${WEBHOOK_TOKEN}"

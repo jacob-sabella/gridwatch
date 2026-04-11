@@ -1,0 +1,22 @@
+# Traefik labels fragment for gridwatch.
+# Drop these labels on the gridwatch container to expose it via Traefik.
+# Assumes a Traefik instance with:
+#   - an entrypoint named `websecure` on 443
+#   - a Let's Encrypt resolver named `le`
+
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.gridwatch.rule=Host(`gridwatch.your.domain`)"
+  - "traefik.http.routers.gridwatch.entrypoints=websecure"
+  - "traefik.http.routers.gridwatch.tls.certresolver=le"
+  - "traefik.http.services.gridwatch.loadbalancer.server.port=8080"
+
+  # SSE support — Traefik passes SSE through natively, but bumping the
+  # response timeout on the entrypoint is still wise:
+  #   traefik command-line flag:
+  #     --entryPoints.websecure.transport.respondingTimeouts.readTimeout=1h
+  #     --entryPoints.websecure.transport.respondingTimeouts.idleTimeout=1h
+
+  # Optional: basic auth middleware (if you don't want the UI public)
+  # - "traefik.http.routers.gridwatch.middlewares=gw-auth"
+  # - "traefik.http.middlewares.gw-auth.basicauth.users=user:$$apr1$$...hashed..."

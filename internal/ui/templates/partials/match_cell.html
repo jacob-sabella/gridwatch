@@ -1,0 +1,8 @@
+{{/* Expects model.Match as dot. */}}
+<a class="epg-cell status-{{.StatusText}}"
+   href="{{.PrimaryStream}}"
+   target="_blank" rel="noopener noreferrer"
+   title="{{.Tournament.Name}}: {{(index .Teams 0).Name}} vs {{(index .Teams 1).Name}}">
+  <span class="cell-teams">{{(index .Teams 0).Name}}<br>vs {{(index .Teams 1).Name}}</span>
+  <span class="cell-meta">{{formatTimeIn .StartTime "UTC"}}</span>
+</a>

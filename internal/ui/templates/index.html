@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="{{.Theme}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gridwatch — esports TV guide</title>
+<meta name="description" content="Self-hosted multi-game esports match schedule — live, upcoming, and recent results.">
+<link rel="icon" type="image/svg+xml" href="{{joinURL .BaseURL "/static/favicon.svg"}}">
+<link rel="stylesheet" href="{{joinURL .BaseURL "/static/css/base.css"}}">
+<link rel="stylesheet" href="{{joinURL .BaseURL "/static/css/grid.css"}}">
+<script src="{{joinURL .BaseURL "/static/js/htmx.min.js"}}" defer></script>
+<script src="{{joinURL .BaseURL "/static/js/gridwatch.js"}}" defer></script>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <span class="logo">⧉</span>
+    <span class="name">gridwatch</span>
+    <span class="tag">esports TV guide</span>
+  </div>
+  <div class="header-actions">
+    <button type="button" id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light">◐</button>
+    <a class="btn-ghost" href="{{joinURL .BaseURL "/api/v1/matches.ics"}}" title="Subscribe in your calendar">📅 .ics</a>
+  </div>
+</header>
+
+<main class="app-main">
+  <aside class="sidebar" id="sidebar">
+    {{template "partials/filters.html" .}}
+  </aside>
+
+  <section class="view" id="view">
+    {{template "partials/grid.html" .}}
+  </section>
+</main>
+
+<footer class="app-footer">
+  <span class="muted">data from liquipedia.net · {{.Timezone}}</span>
+  <span class="muted">gridwatch {{.Version}}</span>
+</footer>
+</body>
+</html>

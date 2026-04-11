@@ -1,0 +1,33 @@
+<form class="filters"
+      hx-get="{{joinURL .BaseURL "/partial/grid"}}"
+      hx-target="#view"
+      hx-push-url="true"
+      hx-trigger="change">
+  <h3>Filters</h3>
+
+  <fieldset>
+    <legend>Games</legend>
+    {{range .Games}}
+    <label>
+      <input type="checkbox" name="game" value="{{.Slug}}"
+             {{range $.Filters.Games}}{{if eq . $.Game}}checked{{end}}{{end}}>
+      <span class="dot" style="background:{{.Color}}"></span>
+      {{.Display}}
+    </label>
+    {{end}}
+  </fieldset>
+
+  <fieldset>
+    <legend>Stream</legend>
+    <label>
+      <input type="checkbox" name="has_stream" value="1" {{if .Filters.HasStream}}checked{{end}}>
+      Only matches with a stream
+    </label>
+  </fieldset>
+</form>
+
+<div class="sidebar-stats">
+  <div class="stat"><span class="k">live now</span><span class="v">{{len .Live}}</span></div>
+  <div class="stat"><span class="k">upcoming</span><span class="v">{{len .Upcoming}}</span></div>
+  <div class="stat"><span class="k">finished</span><span class="v">{{len .Recent}}</span></div>
+</div>

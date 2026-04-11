@@ -1,0 +1,116 @@
+# goreleaser config — build cross-platform binaries, multi-arch Docker
+# images, and a GitHub release.
+#
+# Trigger: `git tag v0.1.0 && git push --tags` then GH Actions runs
+# `goreleaser release --clean`.
+version: 2
+
+project_name: gridwatch
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: gridwatch
+    main: ./cmd/gridwatch
+    binary: gridwatch
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/jsabella/gridwatch/internal/buildinfo.Version={{.Version}}
+      - -X github.com/jsabella/gridwatch/internal/buildinfo.Commit={{.Commit}}
+      - -X github.com/jsabella/gridwatch/internal/buildinfo.Date={{.Date}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      - goos: darwin
+        goarch: arm
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - configs/gridwatch.example.yaml
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-amd64"
+      - "ghcr.io/jsabella/gridwatch:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.source=https://github.com/jsabella/gridwatch"
+      - "--label=org.opencontainers.image.licenses=MIT"
+  - image_templates:
+      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-arm64"
+      - "ghcr.io/jsabella/gridwatch:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+
+docker_manifests:
+  - name_template: "ghcr.io/jsabella/gridwatch:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-amd64"
+      - "ghcr.io/jsabella/gridwatch:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/jsabella/gridwatch:latest"
+    image_templates:
+      - "ghcr.io/jsabella/gridwatch:latest-amd64"
+      - "ghcr.io/jsabella/gridwatch:latest-arm64"
+
+release:
+  github:
+    owner: jsabella
+    name: gridwatch
+  draft: false
+  prerelease: auto
