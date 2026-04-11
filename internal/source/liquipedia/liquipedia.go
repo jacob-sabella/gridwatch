@@ -14,8 +14,13 @@ import (
 	"github.com/jsabella/gridwatch/internal/source"
 )
 
-// Host is the hostname the rate limiter uses to track Liquipedia's floor.
+// Host is the hostname prefix the rate limiter uses for per-page floors.
+// The real rate-limit key is "liquipedia.net/<game>" so each wiki page
+// has its own ≥90s floor, which matches Liquipedia's per-page ToU.
 const Host = "liquipedia.net"
+
+// rateKey returns the per-(host, game) rate-limit bucket key.
+func rateKey(game string) string { return Host + "/" + game }
 
 // DefaultInterval is the polite floor between fetches for the same wiki
 // page. Liquipedia's ToU requires conservative polling for the parse API.
@@ -78,8 +83,10 @@ func (s *Source) Fetch(ctx context.Context, game string) ([]model.Match, error) 
 		return nil, fmt.Errorf("liquipedia: unknown game %q", game)
 	}
 
-	// Rate limit gate.
-	if err := s.limiter.Wait(ctx, Host); err != nil {
+	// Rate limit gate — keyed per (host, game) so different wiki pages
+	// can be polled in parallel, but each individual page still honors
+	// the per-page floor from Liquipedia's ToU.
+	if err := s.limiter.Wait(ctx, rateKey(game)); err != nil {
 		return nil, err
 	}
 
@@ -97,13 +104,13 @@ func (s *Source) Fetch(ctx context.Context, game string) ([]model.Match, error) 
 
 	if resp.StatusCode == http.StatusTooManyRequests {
 		retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))
-		s.limiter.ReportBackoff(Host, retryAfter)
+		s.limiter.ReportBackoff(rateKey(game), retryAfter)
 		return nil, &httpx.ErrRateLimited{RetryAfter: retryAfter, Upstream: Host}
 	}
 	if resp.StatusCode >= 500 {
 		// Discard body so the connection can be reused.
 		_, _ = io.Copy(io.Discard, resp.Body)
-		s.limiter.ReportBackoff(Host, 10*time.Minute)
+		s.limiter.ReportBackoff(rateKey(game), 10*time.Minute)
 		return nil, &httpx.ErrUpstream{Status: resp.StatusCode, URL: url}
 	}
 	if resp.StatusCode != http.StatusOK {

@@ -82,7 +82,11 @@ func main() {
 
 	// Wire HTTP client + rate limiter + Liquipedia source.
 	limiter := ratelimit.New(cfg.Poll.GlobalRPS)
-	limiter.SetHostFloor(liquipedia.Host, cfg.Poll.LiquipediaInterval)
+	// Per-game floors so wikis can be polled in parallel without
+	// stacking up behind a single shared host bucket.
+	for _, g := range cfg.ResolvedGames() {
+		limiter.SetHostFloor(liquipedia.Host+"/"+g.Slug, cfg.Poll.LiquipediaInterval)
+	}
 
 	ua := buildinfo.UserAgent(cfg.Contact)
 	client := httpx.New(ua, 20*time.Second)

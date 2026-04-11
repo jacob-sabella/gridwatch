@@ -98,7 +98,7 @@ func TestFetchHonorsRateLimitFloor(t *testing.T) {
 
 	// Build a limiter with a 200ms floor keyed to the liquipedia Host.
 	lim := ratelimit.New(100)
-	lim.SetHostFloor(Host, 200*time.Millisecond)
+	lim.SetHostFloor(rateKey("rocketleague"), 200*time.Millisecond)
 	client := httpx.New("gridwatch/test (+x@y)", 5*time.Second)
 	src := New(client, lim, gameDefaults()).WithEndpoint(srv.URL)
 
@@ -142,7 +142,7 @@ func TestFetchHandles429WithBackoff(t *testing.T) {
 	defer srv.Close()
 
 	lim := ratelimit.New(100)
-	lim.SetHostFloor(Host, 1*time.Millisecond)
+	lim.SetHostFloor(rateKey("rocketleague"), 1*time.Millisecond)
 	client := httpx.New("gridwatch/test (+x@y)", 5*time.Second)
 	src := New(client, lim, gameDefaults()).WithEndpoint(srv.URL)
 
@@ -177,7 +177,7 @@ func TestFetchHandles500WithBackoff(t *testing.T) {
 	defer srv.Close()
 
 	lim := ratelimit.New(100)
-	lim.SetHostFloor(Host, 1*time.Millisecond)
+	lim.SetHostFloor(rateKey("rocketleague"), 1*time.Millisecond)
 	client := httpx.New("gridwatch/test (+x@y)", 5*time.Second)
 	src := New(client, lim, gameDefaults()).WithEndpoint(srv.URL)
 
@@ -185,8 +185,8 @@ func TestFetchHandles500WithBackoff(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error on 500")
 	}
-	if lim.Cooldown(Host) < 9*time.Minute {
-		t.Errorf("500 should trigger ≥9m cooldown, got %s", lim.Cooldown(Host))
+	if lim.Cooldown(rateKey("rocketleague")) < 9*time.Minute {
+		t.Errorf("500 should trigger ≥9m cooldown, got %s", lim.Cooldown(rateKey("rocketleague")))
 	}
 }
 
