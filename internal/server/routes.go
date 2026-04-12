@@ -347,6 +347,25 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 		}
 	}
 
+	// Compute which games to show as grid rows. If the user has filtered
+	// to specific games, hide the rest — a row that says "Dota 2" with
+	// no matches doesn't help when the user explicitly said "only RL".
+	// The full game list stays available to filters.html (as .AllGames)
+	// so the checkbox sidebar still shows every configured game.
+	visibleGames := s.games
+	if len(q.Games) > 0 {
+		filtered := make([]model.Game, 0, len(q.Games))
+		for _, g := range s.games {
+			for _, want := range q.Games {
+				if g.Slug == want {
+					filtered = append(filtered, g)
+					break
+				}
+			}
+		}
+		visibleGames = filtered
+	}
+
 	// Build slot list for the EPG grid (timeline columns).
 	windowStart := timeutil.FloorSlot(now.Add(-s.cfg.View.WindowPast), s.cfg.View.Slot)
 	windowEnd := now.Add(s.cfg.View.WindowFuture)
@@ -376,9 +395,14 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 	nowIdx := timeutil.SlotIndex(now, windowStart, s.cfg.View.Slot, slotCount)
 
 	return map[string]any{
-		"BaseURL":      s.baseURL,
-		"Version":      s.startAt,
-		"Games":        s.games,
+		"BaseURL": s.baseURL,
+		"Version": s.startAt,
+		// Games filtered by the current query — used by the grid rows.
+		"Games": visibleGames,
+		// Every configured game — used by the filter sidebar so users
+		// can always see what they could toggle, even if the current
+		// filter hides some rows from the grid.
+		"AllGames":     s.games,
 		"Live":         live,
 		"Upcoming":     upcoming,
 		"Recent":       recent,

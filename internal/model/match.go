@@ -76,7 +76,13 @@ type Match struct {
 
 // PrimaryStream returns the first stream URL, or empty if none.
 // Convenience for click-through in the UI.
-func (m *Match) PrimaryStream() string {
+//
+// Value receiver (not pointer): the Match is carried through Go
+// templates as an interface{} which stores the struct by value. A
+// pointer-receiver method isn't in the method set of a non-addressable
+// value, and html/template fails with "can't evaluate field
+// PrimaryStream" when that happens. Value receivers avoid the trap.
+func (m Match) PrimaryStream() string {
 	if len(m.Streams) == 0 {
 		return ""
 	}
@@ -85,6 +91,7 @@ func (m *Match) PrimaryStream() string {
 
 // HasStream reports whether the match has any associated broadcast.
 // gridwatch's default filter hides matches without streams.
-func (m *Match) HasStream() bool {
+// Value receiver for the same reason as PrimaryStream.
+func (m Match) HasStream() bool {
 	return len(m.Streams) > 0
 }

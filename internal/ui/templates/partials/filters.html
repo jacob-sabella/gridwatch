@@ -7,10 +7,12 @@
 
   <fieldset>
     <legend>Games</legend>
-    {{range .Games}}
+    {{$selected := .Filters.Games}}
+    {{range .AllGames}}
+    {{$slug := .Slug}}
     <label>
       <input type="checkbox" name="game" value="{{.Slug}}"
-             {{range $.Filters.Games}}{{if eq . $.Game}}checked{{end}}{{end}}>
+             {{range $selected}}{{if eq . $slug}}checked{{end}}{{end}}>
       <span class="dot" style="background:{{.Color}}"></span>
       {{.Display}}
     </label>
