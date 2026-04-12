@@ -23,5 +23,10 @@ func Defaults() []Game {
 		{Slug: "valorant", Display: "Valorant", Color: "#fd4556", DefaultBestOf: 3, MatchDuration: 90 * time.Minute},
 		{Slug: "starcraft2", Display: "StarCraft II", Color: "#7d3cff", DefaultBestOf: 5, MatchDuration: 60 * time.Minute},
 		{Slug: "overwatch", Display: "Overwatch", Color: "#f99e1a", DefaultBestOf: 5, MatchDuration: 45 * time.Minute},
+		{Slug: "rematch", Display: "Rematch", Color: "#22c55e", DefaultBestOf: 3, MatchDuration: 60 * time.Minute},
+		{Slug: "osu", Display: "osu!", Color: "#ff66aa", DefaultBestOf: 5, MatchDuration: 60 * time.Minute},
+		{Slug: "smash", Display: "Smash Bros.", Color: "#e63946", DefaultBestOf: 5, MatchDuration: 45 * time.Minute},
+		{Slug: "fighters", Display: "Fighting Games", Color: "#9d4edd", DefaultBestOf: 5, MatchDuration: 45 * time.Minute},
+		{Slug: "thefinals", Display: "The Finals", Color: "#00d4ff", DefaultBestOf: 3, MatchDuration: 60 * time.Minute},
 	}
 }

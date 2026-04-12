@@ -33,7 +33,7 @@
         <div class="row-track">
           {{range $.AllMatches}}
             {{if eq .Game $g.Slug}}
-              {{template "partials/match_cell.html" .}}
+              {{template "partials/match_cell.html" (dict "m" . "tz" $.Timezone)}}
             {{end}}
           {{end}}
         </div>
