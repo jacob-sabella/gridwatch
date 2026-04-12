@@ -63,10 +63,12 @@
 
 .row-track {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  padding: var(--space-2);
+  /* Mirror the axis grid so each cell lands at its real start time. */
+  display: grid;
+  grid-template-columns: repeat(var(--slot-count), var(--slot-width));
+  grid-auto-rows: minmax(56px, auto);
+  gap: var(--space-1) 0;
+  padding: var(--space-2) 0;
   min-height: 64px;
 }
 

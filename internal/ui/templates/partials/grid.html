@@ -31,9 +31,9 @@
       <div class="epg-row" data-game="{{$g.Slug}}">
         <div class="row-label" style="--accent:{{$g.Color}}">{{$g.Display}}</div>
         <div class="row-track">
-          {{range $.AllMatches}}
-            {{if eq .Game $g.Slug}}
-              {{template "partials/match_cell.html" (dict "m" . "tz" $.Timezone)}}
+          {{with index $.PlacedByGame $g.Slug}}
+            {{range .}}
+              {{template "partials/match_cell.html" (dict "m" .Match "tz" $.Timezone "col" .Col "span" .Span)}}
             {{end}}
           {{end}}
         </div>

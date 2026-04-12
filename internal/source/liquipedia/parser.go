@@ -222,12 +222,21 @@ func parseScore(block string, start, now time.Time, bestOf int, matchDuration ti
 	}
 
 	if text == "" || text == "vs" {
-		if now.After(start) {
-			// Scheduled time has passed but scoreholder still says "vs":
-			// upstream hasn't caught up yet. Still treat as upcoming so we
-			// don't lie to users. The poller will promote it once the
-			// score appears.
-			return model.StatusUpcoming, nil, nil
+		// If the scheduled time has passed by more than a small grace
+		// window, promote to Live even though Liquipedia hasn't caught
+		// up yet. Without this, a match that started an hour ago still
+		// shows as Upcoming in the sidebar because upstream is slow to
+		// refresh scores.
+		//
+		// After expectedEnd has passed, give up and call it Final —
+		// we'll never know the real score but it's definitely over.
+		grace := 5 * time.Minute
+		expectedEnd := start.Add(2 * matchDuration)
+		if now.After(expectedEnd) {
+			return model.StatusFinal, nil, nil
+		}
+		if now.After(start.Add(grace)) {
+			return model.StatusLive, nil, nil
 		}
 		return model.StatusUpcoming, nil, nil
 	}

@@ -394,6 +394,42 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 
 	nowIdx := timeutil.SlotIndex(now, windowStart, s.cfg.View.Slot, slotCount)
 
+	// Build per-match grid placement (column index + span) relative to
+	// the axis slots. Each cell lands at its actual start time instead
+	// of stacking left-to-right via flexbox.
+	type placedMatch struct {
+		Match model.Match
+		Col   int // 1-indexed CSS grid column in the row-track
+		Span  int // number of slots to span
+	}
+	matchesByGame := map[string][]placedMatch{}
+	for _, m := range matches {
+		offset := m.StartTime.Sub(windowStart)
+		col := int(offset / s.cfg.View.Slot)
+		if col < 0 {
+			col = 0
+		}
+		if col >= slotCount {
+			col = slotCount - 1
+		}
+		dur := gameDuration(s.games, m.Game)
+		span := int(dur / s.cfg.View.Slot)
+		if span < 1 {
+			span = 1
+		}
+		if col+span > slotCount {
+			span = slotCount - col
+			if span < 1 {
+				span = 1
+			}
+		}
+		matchesByGame[m.Game] = append(matchesByGame[m.Game], placedMatch{
+			Match: m,
+			Col:   col + 1, // CSS grid columns are 1-indexed
+			Span:  span,
+		})
+	}
+
 	return map[string]any{
 		"BaseURL": s.baseURL,
 		"Version": s.startAt,
@@ -402,7 +438,9 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 		// Every configured game — used by the filter sidebar so users
 		// can always see what they could toggle, even if the current
 		// filter hides some rows from the grid.
-		"AllGames":     s.games,
+		"AllGames": s.games,
+		// Per-game placed matches (with col + span for grid positioning).
+		"PlacedByGame": matchesByGame,
 		"Live":         live,
 		"Upcoming":     upcoming,
 		"Recent":       recent,
