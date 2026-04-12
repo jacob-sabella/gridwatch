@@ -20,9 +20,16 @@ Cross-platform: **Linux**, **macOS**, and **Windows**. Ships as a single static 
 ## Features
 
 ### Upstream data
-- Polls **Liquipedia** wikis on a per-game schedule, respecting their Terms of Use at the code level (gzip required, descriptive User-Agent with contact, ≥90s per-page cache floor, 10-minute backoff on 429/5xx)
-- Per-(host, game) rate limit keys so wikis poll in parallel instead of serializing behind a shared bucket
-- Refuses to start without a `contact` config field — the ToU compliance check is a hard gate, not a best-effort warning
+- Polls **Liquipedia** wikis while strictly honoring their [API Terms of Use](https://liquipedia.net/api-terms-of-use) at the code level:
+  - **User-Agent** in the exact format they document (`Name/version (url; contact)`)
+  - **gzip** is mandatory and always sent
+  - **Global rate cap** at **1 request per 60 seconds** — half their 1-per-30s ceiling for the parse API
+  - **600s per-page floor** (10 min between fetches of any single wiki page)
+  - **1-hour cooldown** on 429 / 5xx responses (their ToU warns about temp IP bans)
+  - Shared `http.Client` with connection pooling (no new connection per request)
+  - Anonymous requests so their caches can do their job
+- **Refuses to start** if config tries to exceed the ToU ceiling — it's a hard gate, not a best-effort warning
+- Refuses to start without a `contact` config field
 - Golden-file parser tests against captured Liquipedia HTML per game — if their templates drift, CI fails loudly
 - In-memory store with 48h eviction and optional JSON snapshot for cold-start warmth
 
@@ -211,7 +218,7 @@ Poller goroutines       Sources                 Store
 ```
 
 - **Poller**: one goroutine per (source, game), jittered so N games don't fire simultaneously
-- **Rate limiter**: two-layer token bucket — per-host floor for Liquipedia's ≥90s per-page rule, plus a global RPS envelope so a misconfig can't blast upstream
+- **Rate limiter**: two-layer token bucket — per-wiki-page floor (default 600s) + global RPS envelope (default 1/60s, hard-capped at the ToU ceiling of 1/30s via config validation)
 - **Store**: `sync.RWMutex`-guarded map, revision counter for SSE clients, merge semantics that preserve `FirstSeenAt` and dedupe state across polls
 - **Notifier**: consumes store transitions, runs the rule engine, delivers to sinks in parallel, marks fired only on 2xx
 - **UI**: stdlib `html/template` + htmx + ~200 lines of hand-written CSS, served from `embed.FS`. No build step.

@@ -147,11 +147,25 @@ func Defaults() Config {
 			Interval: 5 * time.Minute,
 		},
 		Poll: Poll{
-			GlobalRPS:          0.2,
-			LiquipediaInterval: 120 * time.Second,
-			CacheTTL:           90 * time.Second,
-			BackoffTTL:         10 * time.Minute,
-			Jitter:             20 * time.Second,
+			// Liquipedia ToU (https://liquipedia.net/api-terms-of-use)
+			// caps action=parse at 1 req per 30s TOTAL (not per-page).
+			// We intentionally run at HALF that ceiling so noise + jitter
+			// can't push us over: 1 req per 60s = 0.0166 RPS.
+			GlobalRPS: 0.0166,
+			// Per-wiki page floor: 600s (10 min). At HALF the ToU
+			// recommendation of 30s cache minimum for the parse
+			// endpoint, gives comfortable breathing room even with
+			// many wikis configured.
+			LiquipediaInterval: 600 * time.Second,
+			// Cache HTML responses for 10 min as well — mirrors
+			// the poll interval.
+			CacheTTL: 600 * time.Second,
+			// On 429, back off for a full hour. Their ToU explicitly
+			// warns about temp IP bans, and 10 min is too short.
+			BackoffTTL: 1 * time.Hour,
+			// 120s jitter spreads out initial fetches so N games
+			// don't all fire at process start.
+			Jitter: 120 * time.Second,
 		},
 		View: View{
 			WindowPast:   2 * time.Hour,

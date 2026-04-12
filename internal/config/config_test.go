@@ -97,7 +97,7 @@ contact: "me@example.com"
 games:
   - rocketleague
 poll:
-  liquipedia_interval: 30s
+  liquipedia_interval: 60s
 `
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
@@ -106,8 +106,30 @@ poll:
 	if err == nil {
 		t.Fatal("expected error for too-fast poll interval")
 	}
-	if !strings.Contains(err.Error(), "90s") {
-		t.Errorf("error should mention 90s floor: %v", err)
+	if !strings.Contains(err.Error(), "300s") {
+		t.Errorf("error should mention 300s floor: %v", err)
+	}
+}
+
+func TestRejectsTooHighGlobalRPS(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "g.yaml")
+	content := `
+contact: "me@example.com"
+games:
+  - rocketleague
+poll:
+  global_rps: 0.5
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for too-high global_rps")
+	}
+	if !strings.Contains(err.Error(), "0.033") {
+		t.Errorf("error should mention 0.033 ceiling: %v", err)
 	}
 }
 

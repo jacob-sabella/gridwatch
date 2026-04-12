@@ -34,13 +34,22 @@ games:
 #   enabled: true
 #   interval: 5m
 
-# Polling rates — be polite to upstream
+# Polling rates — Liquipedia Terms of Use enforced in code
+#
+# https://liquipedia.net/api-terms-of-use caps action=parse at
+# 1 request per 30 seconds across ALL games. Gridwatch's defaults
+# intentionally run at HALF that ceiling (1 per 60s) so even with
+# jitter and concurrent polls we never approach the limit.
+#
+# The hard-coded validation will refuse to start if you try to go
+# faster than the ToU allows.
+#
 # poll:
-#   global_rps: 0.2              # global outbound budget (1 req / 5s)
-#   liquipedia_interval: 120s    # per-game floor, never below 90s
-#   cache_ttl: 90s               # re-use cached HTML within this window
-#   backoff_ttl: 10m             # cooldown after 429 / 5xx
-#   jitter: 20s                  # spread per-game first-poll offset
+#   global_rps: 0.0166            # 1 req / 60s. ToU max is 0.033 — don't raise above that.
+#   liquipedia_interval: 600s     # per-game floor, min 300s (default 600s = 10 min/page)
+#   cache_ttl: 600s               # re-use cached HTML within this window
+#   backoff_ttl: 1h               # cooldown after 429 / 5xx — their ToU warns about temp IP bans
+#   jitter: 120s                  # spread per-game first-poll offset
 
 # Game overrides — override per-title metadata if you don't like defaults.
 # Unknown slugs also work (generic fallback).

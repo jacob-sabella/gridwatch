@@ -45,11 +45,21 @@ func (c *Config) Validate() error {
 	if c.Poll.GlobalRPS <= 0 {
 		return errors.New("config: poll.global_rps must be > 0")
 	}
-	if c.Poll.LiquipediaInterval < 90*time.Second {
-		return fmt.Errorf("config: poll.liquipedia_interval must be ≥ 90s (Liquipedia ToU), got %s", c.Poll.LiquipediaInterval)
+	// Hard ToU ceiling: Liquipedia caps action=parse at 1 request per
+	// 30 seconds TOTAL (0.033 RPS). We hard-reject anything at or
+	// above the ceiling so there's no way to configure into a ban.
+	// https://liquipedia.net/api-terms-of-use
+	if c.Poll.GlobalRPS > 0.033 {
+		return fmt.Errorf("config: poll.global_rps must be ≤ 0.033 (1 req / 30s, Liquipedia parse API ToU; default 0.0166 = 1 req / 60s is safer), got %v", c.Poll.GlobalRPS)
+	}
+	if c.Poll.LiquipediaInterval < 300*time.Second {
+		return fmt.Errorf("config: poll.liquipedia_interval must be ≥ 300s (Liquipedia requests caching between calls; anything faster risks a temp IP ban). default 600s is safer. got %s", c.Poll.LiquipediaInterval)
 	}
 	if c.Poll.CacheTTL <= 0 {
 		return errors.New("config: poll.cache_ttl must be > 0")
+	}
+	if c.Poll.CacheTTL < 30*time.Second {
+		return fmt.Errorf("config: poll.cache_ttl must be ≥ 30s (matches Liquipedia's parse-endpoint minimum), got %s", c.Poll.CacheTTL)
 	}
 	if _, err := time.LoadLocation(c.DefaultTimezone); err != nil {
 		return fmt.Errorf("config: invalid default_timezone %q: %w", c.DefaultTimezone, err)
