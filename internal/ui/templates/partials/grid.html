@@ -1,6 +1,13 @@
 <div class="view-head">
   <h2>Live &amp; upcoming</h2>
-  <span class="muted now-clock">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
+  <div class="view-head-right">
+    <div class="view-stats">
+      <span class="stat-inline"><span class="dot live-dot"></span>{{len .Live}} live</span>
+      <span class="stat-inline">{{len .Upcoming}} upcoming</span>
+      <span class="stat-inline muted">{{len .Recent}} finished</span>
+    </div>
+    <span class="muted now-clock">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
+  </div>
 </div>
 
 {{if .Live}}
