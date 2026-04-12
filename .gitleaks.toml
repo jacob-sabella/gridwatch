@@ -31,12 +31,16 @@ tags = ["token", "n8n"]
 
 # Allowlist: the Makefile + CI workflow reference ${{ secrets.GITHUB_TOKEN }}
 # which is a template placeholder, not a real token. Let gitleaks ignore
-# those GitHub Actions expressions.
+# those GitHub Actions expressions. Also exempt parser test fixtures,
+# which contain synthetic hex-looking match keys that trip the generic-
+# api-key heuristic (e.g. "m_bf0397fd562e" — not a secret).
 [allowlist]
-description = "GitHub Actions secret references"
+description = "GitHub Actions secret references + test fixtures"
 regexes = [
   '''\$\{\{\s*secrets\.[A-Z_]+\s*\}\}''',
 ]
 paths = [
-  '''\.gitleaks\.toml''',  # don't flag our own regex patterns
+  '''\.gitleaks\.toml''',                                      # don't flag our own regex patterns
+  '''internal/source/liquipedia/testdata/.*\.golden\.json''',  # parser golden files
+  '''internal/source/liquipedia/testdata/.*_matches\.json''',  # captured wiki snapshots
 ]
