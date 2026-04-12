@@ -128,37 +128,6 @@ games:
 
 The full schema lives in [`configs/gridwatch.example.yaml`](configs/gridwatch.example.yaml) with every knob documented inline.
 
-### Reverse proxy
-
-Sample configs live in [`deploy/`](deploy/):
-
-- **`deploy/nginx-proxy-manager/`** — NPM setup, including the SSE-buffering gotcha
-- **`deploy/traefik/`** — labels fragment
-- **`deploy/caddy/`** — Caddyfile snippet
-
-> **SSE gotcha:** nginx (and by extension NPM/openresty) buffers Server-Sent Events by default. Gridwatch sends `X-Accel-Buffering: no` on `/events`, and nginx honors it — but if you add custom `advanced_config`, make sure `proxy_buffering off;` is set at the host level, not inside a bare `location /events { }` block without `proxy_pass`.
-
-### Notifier
-
-Off by default. To enable push alerts:
-
-```yaml
-notifications:
-  enabled: true
-  rules:
-    - games: [rocketleague, leagueoflegends]
-      stages: [live, result]
-      min_tier: "A-Tier"
-  sinks:
-    - kind: ntfy
-      url: http://ntfy.lan:8555
-      topic: esports
-      user: you
-      password: "${NTFY_PASSWORD}"  # env-var interpolation works
-    - kind: webhook
-      url: https://hooks.example.com/esports
-```
-
 ### Plex / Jellyfin Live TV
 
 Gridwatch can't play Twitch streams itself, but its **XMLTV feed** lets Plex Live TV or Jellyfin Live TV (via xTeVe or TVHeadend) render the schedule as a native program guide. Point your tuner middleware at `http://gridwatch.lan:8080/api/v1/matches.xml` as an XMLTV source. Clicking through to the actual stream still happens in the browser.
