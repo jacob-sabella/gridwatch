@@ -74,7 +74,9 @@ dockers:
   - image_templates:
       - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-amd64"
       - "ghcr.io/jacob-sabella/gridwatch:latest-amd64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.release
+    extra_files:
+      - configs/gridwatch.example.yaml
     use: buildx
     goos: linux
     goarch: amd64
@@ -88,7 +90,9 @@ dockers:
   - image_templates:
       - "ghcr.io/jacob-sabella/gridwatch:{{ .Version }}-arm64"
       - "ghcr.io/jacob-sabella/gridwatch:latest-arm64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.release
+    extra_files:
+      - configs/gridwatch.example.yaml
     use: buildx
     goos: linux
     goarch: arm64
