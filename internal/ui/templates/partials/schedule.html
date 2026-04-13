@@ -1,0 +1,24 @@
+<div class="view-head">
+  <h2>Schedule — next 7 days</h2>
+  <div class="view-head-right">
+    <span class="muted now-clock">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
+  </div>
+</div>
+
+{{if .Days}}
+{{range .Days}}
+<section class="schedule-day">
+  <h3 class="section-title">{{.Label}}</h3>
+  <div class="card-row">
+    {{range .Matches}}
+      {{template "partials/match_card.html" .}}
+    {{end}}
+  </div>
+</section>
+{{end}}
+{{else}}
+<div class="empty">
+  <p class="big">No matches scheduled in the next 7 days.</p>
+  <p class="muted">Liquipedia's <code>Liquipedia:Matches</code> page typically only lists the next 24–48h. Farther-out matches live on per-tournament pages, which gridwatch does not yet scrape.</p>
+</div>
+{{end}}

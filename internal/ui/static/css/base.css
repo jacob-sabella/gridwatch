@@ -103,6 +103,21 @@ h1, h2, h3, h4 {
 
 .header-actions { display: flex; gap: var(--space-2); }
 
+.header-nav { display: flex; gap: var(--space-1); margin-left: var(--space-4); flex: 1; }
+.header-nav .nav-link {
+  padding: var(--space-2) var(--space-3);
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+}
+.header-nav .nav-link:hover { background: var(--bg-hover); color: var(--fg); }
+.header-nav .nav-link.active { color: var(--fg); background: var(--bg-hover); }
+
+.schedule-day { margin-bottom: var(--space-5); }
+.schedule-day .section-title { margin-bottom: var(--space-3); }
+
 .btn-ghost {
   padding: var(--space-2) var(--space-3);
   background: transparent;
@@ -302,6 +317,13 @@ h1, h2, h3, h4 {
   align-items: center;
   gap: var(--space-2);
   font-weight: 600;
+  min-width: 0;
+}
+.match-card .teams .team {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .match-card .teams .team:last-child { text-align: right; }
 .match-card .teams .score {
@@ -319,8 +341,9 @@ h1, h2, h3, h4 {
   margin-top: var(--space-2);
   font-size: 12px;
 }
-.match-card .tournament { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: var(--space-3); }
+.match-card .tournament { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: var(--space-3); min-width: 0; flex: 1; }
 .match-card .time { flex-shrink: 0; }
+.match-card .game-icon { flex-shrink: 0; margin-right: var(--space-2); font-size: 14px; line-height: 1; }
 
 .badge-live, .badge-final {
   padding: 2px 6px;
@@ -341,6 +364,15 @@ h1, h2, h3, h4 {
   margin-top: var(--space-2);
   font-size: 11px;
   color: var(--fg-muted);
+  min-width: 0;
+  overflow: hidden;
+}
+.match-card .streams .stream {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 /* --- Live banner --- */

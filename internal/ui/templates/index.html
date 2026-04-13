@@ -18,6 +18,10 @@
     <span class="name">gridwatch</span>
     <span class="tag">esports TV guide</span>
   </div>
+  <nav class="header-nav">
+    <a class="nav-link{{if eq .View "grid"}} active{{end}}" href="{{joinURL .BaseURL "/"}}">Live &amp; upcoming</a>
+    <a class="nav-link{{if eq .View "schedule"}} active{{end}}" href="{{joinURL .BaseURL "/schedule"}}">Schedule</a>
+  </nav>
   <div class="header-actions">
     <button type="button" id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light">◐</button>
     <a class="btn-ghost" href="{{joinURL .BaseURL "/api/v1/matches.ics"}}" title="Subscribe in your calendar">📅 .ics</a>
@@ -30,7 +34,11 @@
   </aside>
 
   <section class="view" id="view">
-    {{template "partials/grid.html" .}}
+    {{if eq .View "schedule"}}
+      {{template "partials/schedule.html" .}}
+    {{else}}
+      {{template "partials/grid.html" .}}
+    {{end}}
   </section>
 </main>
 

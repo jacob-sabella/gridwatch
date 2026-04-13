@@ -15,6 +15,7 @@
     <span class="team">{{(index .Teams 1).Name}}</span>
   </div>
   <div class="meta">
+    <span class="game-icon game-{{.Game}}" title="{{gameLabel .Game}}" aria-label="{{gameLabel .Game}}">{{gameIcon .Game}}</span>
     <span class="tournament">{{.Tournament.Name}}</span>
     <span class="time">
       {{if eq .StatusText "live"}}

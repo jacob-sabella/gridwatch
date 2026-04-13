@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -19,6 +20,8 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /partial/grid", s.handleGridPartial)
 	mux.HandleFunc("GET /partial/cards", s.handleCardsPartial)
 	mux.HandleFunc("GET /partial/filters", s.handleFiltersPartial)
+	mux.HandleFunc("GET /schedule", s.handleSchedule)
+	mux.HandleFunc("GET /partial/schedule", s.handleSchedulePartial)
 	mux.HandleFunc("GET /events", s.handleSSE)
 	mux.HandleFunc("GET /api/v1/matches", s.handleAPIMatchesJSON)
 	mux.HandleFunc("GET /api/v1/matches.ics", s.handleAPIMatchesICS)
@@ -66,6 +69,19 @@ func (s *Server) handleCardsPartial(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleFiltersPartial(w http.ResponseWriter, r *http.Request) {
 	s.render(w, "partials/filters.html", s.viewData(r))
+}
+
+func (s *Server) handleSchedule(w http.ResponseWriter, r *http.Request) {
+	data := s.scheduleData(r)
+	if isHTMX(r) {
+		s.render(w, "partials/schedule.html", data)
+		return
+	}
+	s.render(w, "index.html", data)
+}
+
+func (s *Server) handleSchedulePartial(w http.ResponseWriter, r *http.Request) {
+	s.render(w, "partials/schedule.html", s.scheduleData(r))
 }
 
 // ----- JSON API -----
@@ -457,5 +473,99 @@ func (s *Server) viewData(r *http.Request) map[string]any {
 		"Timezone":          tz.String(),
 		"Theme":             s.cfg.View.Theme,
 		"Filters":           q,
+		"View":              "grid",
+	}
+}
+
+// scheduleData builds a 7-day upcoming schedule grouped by local day.
+// Uses the store directly with a wider future window than the default
+// grid view, so users can see matches further out than the 24h grid.
+func (s *Server) scheduleData(r *http.Request) map[string]any {
+	q := s.queryFromRequest(r)
+	// Override window: show 7 days ahead, no past.
+	now := time.Now().UTC()
+	q.Window = store.TimeWindow{
+		Reference: now,
+		Past:      0,
+		Future:    7 * 24 * time.Hour,
+	}
+	matches := s.store.Query(q)
+
+	tz := timeutil.LoadLocation(s.cfg.DefaultTimezone)
+	if c, err := r.Cookie("gw_tz"); err == nil && c.Value != "" {
+		if loc, err := time.LoadLocation(c.Value); err == nil {
+			tz = loc
+		}
+	}
+	nowLocal := time.Now().In(tz)
+
+	// Group by local date.
+	type dayGroup struct {
+		Date    time.Time
+		Label   string
+		Matches []model.Match
+	}
+	byDate := map[string]*dayGroup{}
+	order := []string{}
+	for _, m := range matches {
+		local := m.StartTime.In(tz)
+		key := local.Format("2006-01-02")
+		g, ok := byDate[key]
+		if !ok {
+			midnight := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, tz)
+			g = &dayGroup{Date: midnight, Label: dayLabel(midnight, nowLocal)}
+			byDate[key] = g
+			order = append(order, key)
+		}
+		g.Matches = append(g.Matches, m)
+	}
+	sort.Strings(order)
+	days := make([]*dayGroup, 0, len(order))
+	for _, k := range order {
+		sort.Slice(byDate[k].Matches, func(i, j int) bool {
+			return byDate[k].Matches[i].StartTime.Before(byDate[k].Matches[j].StartTime)
+		})
+		days = append(days, byDate[k])
+	}
+
+	visibleGames := s.games
+	if len(q.Games) > 0 {
+		filtered := make([]model.Game, 0, len(q.Games))
+		for _, g := range s.games {
+			for _, want := range q.Games {
+				if g.Slug == want {
+					filtered = append(filtered, g)
+					break
+				}
+			}
+		}
+		visibleGames = filtered
+	}
+
+	return map[string]any{
+		"BaseURL":    s.baseURL,
+		"Version":    s.startAt,
+		"Games":      visibleGames,
+		"AllGames":   s.games,
+		"Days":       days,
+		"AllMatches": matches,
+		"Now":        nowLocal,
+		"Timezone":   tz.String(),
+		"Theme":      s.cfg.View.Theme,
+		"Filters":    q,
+		"View":       "schedule",
+	}
+}
+
+func dayLabel(day, now time.Time) string {
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	diff := int(day.Sub(today).Hours() / 24)
+	switch diff {
+	case 0:
+		return "Today · " + day.Format("Mon, Jan 2")
+	case 1:
+		return "Tomorrow · " + day.Format("Mon, Jan 2")
+	default:
+		return day.Format("Monday, Jan 2")
 	}
 }

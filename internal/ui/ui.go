@@ -64,6 +64,38 @@ func Load() (*Templates, error) {
 			}
 			return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(path, "/")
 		},
+		"gameIcon": func(slug string) string {
+			switch slug {
+			case "rocketleague", "rl":
+				return "🚗"
+			case "leagueoflegends", "lol":
+				return "⚔️"
+			case "counterstrike", "cs2", "cs":
+				return "🔫"
+			case "dota2", "dota":
+				return "🛡️"
+			case "valorant", "val":
+				return "🎯"
+			default:
+				return "🎮"
+			}
+		},
+		"gameLabel": func(slug string) string {
+			switch slug {
+			case "rocketleague", "rl":
+				return "Rocket League"
+			case "leagueoflegends", "lol":
+				return "League of Legends"
+			case "counterstrike", "cs2", "cs":
+				return "Counter-Strike 2"
+			case "dota2", "dota":
+				return "Dota 2"
+			case "valorant", "val":
+				return "Valorant"
+			default:
+				return slug
+			}
+		},
 		"streamIcon": func(platform string) string {
 			switch platform {
 			case "twitch":
