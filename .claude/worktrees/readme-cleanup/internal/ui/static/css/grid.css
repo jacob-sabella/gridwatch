@@ -1,0 +1,138 @@
+/* EPG timeline grid — desktop only. */
+
+.epg-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  margin: var(--space-3) 0;
+}
+
+.epg {
+  --slot-width: 120px;
+  --row-label-width: 180px;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--row-label-width) repeat(var(--slot-count), var(--slot-width));
+  grid-auto-rows: minmax(64px, auto);
+  min-width: max-content;
+}
+
+.epg-axis {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: repeat(var(--slot-count), var(--slot-width));
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  height: 32px;
+  align-items: center;
+}
+
+.axis-cell {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  padding: 0 var(--space-2);
+  border-left: 1px solid var(--border);
+}
+.axis-cell:first-child { border-left: none; }
+
+.epg-row {
+  display: grid;
+  grid-template-columns: var(--row-label-width) 1fr;
+  border-top: 1px solid var(--border);
+  grid-column: 1 / -1;
+}
+
+.row-label {
+  padding: var(--space-3);
+  font-weight: 600;
+  font-size: 13px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elev);
+  border-left: 3px solid var(--accent, #5e9eff);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  --accent: var(--upcoming);
+}
+
+.row-track {
+  position: relative;
+  /* Mirror the axis grid so each cell lands at its real start time. */
+  display: grid;
+  grid-template-columns: repeat(var(--slot-count), var(--slot-width));
+  grid-auto-rows: minmax(56px, auto);
+  gap: var(--space-1) 0;
+  padding: var(--space-2) 0;
+  min-height: 64px;
+}
+
+.epg-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--upcoming);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: 12px;
+  color: var(--fg);
+  text-decoration: none;
+  transition: background 120ms;
+  /* Don't overflow the cell's assigned grid span. */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.epg-cell:hover { background: var(--bg); text-decoration: none; }
+.epg-cell.status-live { border-left-color: var(--live); background: rgba(255,59,74,0.08); }
+.epg-cell.status-final { opacity: 0.6; border-left-color: var(--final); }
+
+.cell-teams {
+  line-height: 1.3;
+  font-weight: 500;
+  /* Truncate long team names with ellipsis instead of overflowing. */
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.cell-meta {
+  font-size: 10px;
+  color: var(--fg-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.now-cursor {
+  position: absolute;
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  left: calc(var(--row-label-width) + var(--now-col) * var(--slot-width));
+  background: var(--live);
+  box-shadow: 0 0 8px rgba(255, 59, 74, 0.5);
+  pointer-events: none;
+  z-index: 3;
+}
+.now-cursor::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: var(--live);
+  border-radius: 50%;
+}

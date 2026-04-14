@@ -1,0 +1,35 @@
+# gridwatch — one-service docker-compose
+# Run: `docker compose up -d`
+# Required: set GRIDWATCH_CONTACT in your environment or in a .env next to this file.
+
+services:
+  gridwatch:
+    image: ghcr.io/jacob-sabella/gridwatch:latest
+    container_name: gridwatch
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Bind-mount your own config. Remove this to use the baked-in default
+      # (which only has `contact` and 3 games — fine for quickstart but you
+      # probably want your own).
+      - ./gridwatch.yaml:/etc/gridwatch/gridwatch.yaml:ro
+      # Persistent data dir for snapshot.json — preserves match state
+      # across container restarts so the UI doesn't go empty on upgrade.
+      - gridwatch-data:/data
+    environment:
+      # REQUIRED — sent in User-Agent to Liquipedia per their ToU.
+      - GRIDWATCH_CONTACT=${GRIDWATCH_CONTACT:?set GRIDWATCH_CONTACT}
+      # Optional overlays — uncomment as needed.
+      # - GRIDWATCH_BIND=0.0.0.0:8080
+      # - GRIDWATCH_LOG_LEVEL=info
+      # - GRIDWATCH_METRICS=false
+      # - NTFY_PASSWORD=${NTFY_PASSWORD}   # consumed via ${NTFY_PASSWORD} in gridwatch.yaml
+    healthcheck:
+      test: ["CMD", "/gridwatch", "--version"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  gridwatch-data:

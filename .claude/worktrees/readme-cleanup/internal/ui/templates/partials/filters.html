@@ -1,5 +1,5 @@
 <form class="filters"
-      hx-get="{{if eq .View "schedule"}}{{joinURL .BaseURL "/partial/schedule"}}{{else}}{{joinURL .BaseURL "/partial/grid"}}{{end}}"
+      hx-get="{{joinURL .BaseURL "/partial/grid"}}"
       hx-target="#view"
       hx-push-url="true"
       hx-trigger="change">

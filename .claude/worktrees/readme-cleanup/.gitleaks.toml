@@ -1,0 +1,46 @@
+# gitleaks config — intentionally conservative, no allowlists for known
+# secrets. If gitleaks flags something in CI, it should be investigated,
+# not ignored.
+#
+# Reference: https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+# Start from the built-in ruleset — covers AWS/GCP/GitHub/Slack/Stripe/
+# generic high-entropy patterns.
+useDefault = true
+
+# --- Custom rules for this project ---
+
+[[rules]]
+id = "portainer-api-key"
+description = "Portainer API access token (ptr_ prefix, base64)"
+regex = '''ptr_[A-Za-z0-9+/=_-]{30,}'''
+tags = ["key", "portainer"]
+
+[[rules]]
+id = "cloudflare-api-token"
+description = "Cloudflare API token (cfat_ prefix)"
+regex = '''cfat_[A-Za-z0-9_-]{32,}'''
+tags = ["key", "cloudflare"]
+
+[[rules]]
+id = "n8n-jwt"
+description = "n8n JWT API key"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'''
+tags = ["token", "n8n"]
+
+# Allowlist: the Makefile + CI workflow reference ${{ secrets.GITHUB_TOKEN }}
+# which is a template placeholder, not a real token. Let gitleaks ignore
+# those GitHub Actions expressions. Also exempt parser test fixtures,
+# which contain synthetic hex-looking match keys that trip the generic-
+# api-key heuristic (e.g. "m_bf0397fd562e" — not a secret).
+[allowlist]
+description = "GitHub Actions secret references + test fixtures"
+regexes = [
+  '''\$\{\{\s*secrets\.[A-Z_]+\s*\}\}''',
+]
+paths = [
+  '''\.gitleaks\.toml''',                                      # don't flag our own regex patterns
+  '''internal/source/liquipedia/testdata/.*\.golden\.json''',  # parser golden files
+  '''internal/source/liquipedia/testdata/.*_matches\.json''',  # captured wiki snapshots
+]

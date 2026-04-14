@@ -1,0 +1,88 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Only one release run at a time. If two tags land in rapid succession
+# they serialize instead of racing for the same GHCR manifest.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write       # create GitHub releases + upload assets
+  packages: write       # push image to GHCR
+  id-token: write       # OIDC token for keyless sigstore signing + attestations
+  attestations: write   # required for actions/attest-build-provenance
+
+jobs:
+  release:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # Belt-and-suspenders: the `protect-release-tags` ruleset on the
+      # repo already restricts v* tag creation/update/deletion to the
+      # admin role. This check is a second layer that refuses to run
+      # the workflow if a non-owner somehow triggered it (e.g., a PAT
+      # leak).
+      - name: Verify release actor
+        run: |
+          if [ "${{ github.actor }}" != "${{ github.repository_owner }}" ]; then
+            echo "::error::release triggered by ${{ github.actor }}, not the repo owner (${{ github.repository_owner }})"
+            exit 1
+          fi
+          echo "release actor: ${{ github.actor }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          check-latest: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: GoReleaser
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Sign the released Docker manifests + emit a build provenance
+      # attestation that SLSA-3 verifiers can check. Keyless sigstore
+      # flow uses the OIDC token from `id-token: write` above.
+      - name: Attest build provenance (Docker image)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ fromJSON(steps.goreleaser.outputs.metadata).docker_manifests && fromJSON(steps.goreleaser.outputs.metadata).docker_manifests[0].digest || '' }}
+          push-to-registry: true
+        continue-on-error: true
+
+      - name: Attest build provenance (binary archives)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: "dist/*.tar.gz"
+        continue-on-error: true

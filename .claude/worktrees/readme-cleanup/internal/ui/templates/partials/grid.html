@@ -1,0 +1,82 @@
+<div class="view-head">
+  <h2>Live &amp; upcoming</h2>
+  <div class="view-head-right">
+    <div class="view-stats">
+      <span class="stat-inline"><span class="dot live-dot"></span>{{len .Live}} live</span>
+      <span class="stat-inline">{{len .Upcoming}} upcoming</span>
+      <span class="stat-inline muted">{{len .Recent}} finished</span>
+    </div>
+    <span class="muted now-clock">{{formatDateIn .Now .Timezone}} · {{formatTimeIn .Now .Timezone}} {{.Timezone}}</span>
+  </div>
+</div>
+
+{{if .Live}}
+<section class="live-banner">
+  <h3 class="section-title"><span class="live-dot"></span> LIVE NOW</h3>
+  <div class="card-row">
+    {{range .Live}}
+      {{template "partials/match_card.html" .}}
+    {{end}}
+  </div>
+</section>
+{{end}}
+
+<section class="epg-wrapper">
+  <h3 class="section-title">Timeline</h3>
+  <div class="epg-scroll">
+    <div class="epg"
+         data-window-start-ms="{{.WindowStartUnixMs}}"
+         data-slot-ms="{{.SlotMs}}"
+         style="--slot-count:{{.SlotCount}}; --now-col:{{.NowSlotIndex}};">
+      <div class="epg-axis">
+        {{range $i, $slot := .Slots}}
+          <div class="axis-cell" style="grid-column:{{add $i 1}};">{{$slot.Label}}</div>
+        {{end}}
+      </div>
+
+      {{range $gi, $g := .Games}}
+      <div class="epg-row" data-game="{{$g.Slug}}">
+        <div class="row-label" style="--accent:{{$g.Color}}">{{$g.Display}}</div>
+        <div class="row-track">
+          {{with index $.PlacedByGame $g.Slug}}
+            {{range .}}
+              {{template "partials/match_cell.html" (dict "m" .Match "tz" $.Timezone "col" .Col "span" .Span)}}
+            {{end}}
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+
+      <div class="now-cursor" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+{{if .Upcoming}}
+<section class="upcoming-list">
+  <h3 class="section-title">Next up</h3>
+  <div class="card-row">
+    {{range .Upcoming}}
+      {{template "partials/match_card.html" .}}
+    {{end}}
+  </div>
+</section>
+{{end}}
+
+{{if .Recent}}
+<section class="recent-list">
+  <h3 class="section-title">Recent results</h3>
+  <div class="card-row muted">
+    {{range .Recent}}
+      {{template "partials/match_card.html" .}}
+    {{end}}
+  </div>
+</section>
+{{end}}
+
+{{if not (or .Live .Upcoming .Recent)}}
+<div class="empty">
+  <p class="big">No matches in the current window.</p>
+  <p class="muted">Waiting for the next poll to return data from Liquipedia.</p>
+</div>
+{{end}}

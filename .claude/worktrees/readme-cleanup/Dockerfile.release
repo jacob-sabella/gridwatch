@@ -1,0 +1,25 @@
+# Runtime-only Dockerfile used by goreleaser.
+#
+# goreleaser builds the Go binary itself via its `builds:` config, then
+# drops the binary + any declared `extra_files` into an isolated context
+# directory. This Dockerfile just packages that into a distroless image.
+#
+# For local "docker build ." use the top-level `Dockerfile` instead,
+# which does a full multi-stage compile.
+
+FROM gcr.io/distroless/static-debian12:nonroot
+
+LABEL org.opencontainers.image.title="gridwatch"
+LABEL org.opencontainers.image.description="Self-hosted esports TV guide"
+LABEL org.opencontainers.image.source="https://github.com/jacob-sabella/gridwatch"
+LABEL org.opencontainers.image.licenses="MIT"
+
+COPY gridwatch /gridwatch
+COPY configs/gridwatch.example.yaml /etc/gridwatch/gridwatch.yaml
+
+USER nonroot:nonroot
+EXPOSE 8080
+VOLUME ["/data"]
+
+ENTRYPOINT ["/gridwatch"]
+CMD ["--config", "/etc/gridwatch/gridwatch.yaml"]

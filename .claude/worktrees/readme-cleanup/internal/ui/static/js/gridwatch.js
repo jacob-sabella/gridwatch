@@ -120,9 +120,7 @@
   function refreshGrid() {
     if (window.htmx) {
       const view = document.getElementById('view');
-      if (!view) return;
-      const url = view.getAttribute('data-refresh-url') || 'partial/grid';
-      window.htmx.ajax('GET', url, { target: '#view' });
+      if (view) window.htmx.ajax('GET', 'partial/grid', { target: '#view' });
     }
   }
 })();
