@@ -81,3 +81,4 @@ logs/
 .envrc
 .air.toml
 __debug_bin
+.claude/worktrees/
